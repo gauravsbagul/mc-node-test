@@ -1,0 +1,14 @@
+{
+
+    "test": {
+        "PORT": 3000,
+        "MONGODB_URI": "mongodb://localhost:27017/menu-cart",
+        "JWT_SECRET": "JWT_SECRET"
+    },
+    "development": {
+        "PORT": 3000,
+        "MONGODB_URI": "mongodb://localhost:27017/menu-cart",
+        "JWT_SECRET": "JWT_SECRET"
+    }
+
+}
