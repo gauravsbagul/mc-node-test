@@ -5,7 +5,7 @@ const authorize = require('../middleware/check-auth').Authenticate;
 
 router.post("/createOrder",authorize, placeOrderController.createOrder);
 
-router.get("/getAllOrdersByRestaurantId/:restaurantId",authorize, placeOrderController.getAllOrdersByRestaurantId);
+router.get("/getAllOrdersByRestaurantId",authorize, placeOrderController.getAllOrdersByRestaurantId);
 
 router.post("/updatePaymentStatus",authorize, placeOrderController.updatePaymentStatus);
 

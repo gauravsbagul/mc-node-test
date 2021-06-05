@@ -9,6 +9,8 @@ router.post("/generateOTP", userController.generateOTP);
 
 router.post("/verifyOTP", userController.verifyOTP);
 
+router.put("/updateFCMToken", authorize, userController.updateFCMToken);
+
 router.post("/logOut", userController.logOut);
 
 module.exports = router;

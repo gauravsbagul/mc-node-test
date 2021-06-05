@@ -9,7 +9,8 @@ const userSchema = new Schema({
   mobileNumber: { type: String, required: true },
   jwtToken: { type: String},
   role: { type: String, required: true,enum: ['CUSTOMER', 'VENDOR'] },
-  isLogin: { type: Boolean, required: true}
+  isLogin: { type: Boolean, required: true},
+  fcmToken: { type: String},
 }, { timestamps: true });
 
 userSchema.plugin(uniqueValidator);

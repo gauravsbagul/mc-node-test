@@ -1,18 +1,43 @@
 const Restaurant = require('../models/restaurant');
 
+exports.uploadRestaurantImage = async (req,res)=>{
+    
+    if(req.query.restaurantId && req.file){
+       
+        const resultUpd = await Restaurant.updateOne({_id:req.query.restaurantId},{restaurantTokenImage: req.file.path});
+        
+        if(resultUpd && resultUpd.n == 1 && resultUpd.nModified == 1){
+            res.status(202).json({
+                status:true,
+                message: 'Restaurant details are found saved previously, and now restaurant details are updated successfully!',
+                resultUpd
+            });
+        }else{
+            res.status(500).json({
+                status:false,
+                resultUpd,
+                message: "something went wrong, db error, you may b not the owner of this restaurant to update, please check once"
+            });
+        } 
+    }else{
+        res.status(500).json({
+            status:false,
+            message: "mandatory fields are missing.!"
+        });  
+    } 
+}
+
 exports.createRestaurant = async (req,res)=>{
     console.log("🚀 ~ file: restaurant.js ~ line 4 ~ exports.createRestaurant= ~ req", req.userDetails)
     try{
         if(req.userDetails.role == 'VENDOR'){
-            if(req.body.restaurantName && req.body.address){
+            if(req.body.restaurantName && req.body.address && req.body.offers.length){
                 const restaurant = new Restaurant({
                     restaurantName: req.body.restaurantName,
                     address: req.body.address,
                     createdBy: req.userDetails._id,
-                    giftItemOne: req.body.giftItemOne ? req.body.giftItemOne: "",
-                    giftItemTwo: req.body.giftItemTwo ? req.body.giftItemTwo : "",
-                    giftItemOneCoins: req.body.giftItemOneCoins ? req.body.giftItemOneCoins : -1,
-                    giftItemTwoCoins: req.body.giftItemTwoCoins ? req.body.giftItemTwoCoins : -1,
+                    offers: req.body.offers,
+                    restaurantTokenImage: req.file.path,
                     coins: 00
                 });
                 //how to check for previously existing restaurants
@@ -39,8 +64,7 @@ exports.createRestaurant = async (req,res)=>{
         }
     }catch(err){
         console.log(err)
-        res.json({status:false,message:"something went wrong",err})
-    }
+        res.json({status:false,message:"file provided is not png or jpeg format, or else please check request body parameters; ",err})    }
 }
 
 exports.getAllRestaurants = async (req,res)=>{
@@ -66,8 +90,8 @@ exports.getAllRestaurants = async (req,res)=>{
 
 exports.getRestaurantById = async (req,res)=>{
     try{
-        if(req.params.restaurantId){
-            const result = await Restaurant.findById({_id:req.params.restaurantId})
+        if(req.query.restaurantId){
+            const result = await Restaurant.findById({_id:req.query.restaurantId})
             if(result){
                 res.status(200).json({
                     status:true,
@@ -92,29 +116,61 @@ exports.getRestaurantById = async (req,res)=>{
 exports.updateRestaurantById = async (req,res)=>{
     try{
         if(req.userDetails.role == 'VENDOR'){
-            if(req.params.restaurantId && (req.body && (req.body.restaurantName || req.body.address || req.body.coins))){
-                console.log("🚀 ~ file: restaurant.js ~ line 90 ~ exports.updateRestaurantById= ~ req.body", req.body)
-                
-                const result = await Restaurant.updateOne({_id:req.params.restaurantId,createdBy:req.userDetails._id},req.body);
-                console.log("🚀 ~ file: restaurant.js ~ line 93 ~ exports.updateRestaurantById= ~ result", result)
+            if(req.query.restaurantId){
+                if(req.body.offers && req.body.offers.length){
+                    res.json({status:false,message:"You cannot update offers field from this api"})
+                }else{
+                    const result = await Restaurant.updateOne({_id:req.query.restaurantId,createdBy:req.userDetails._id},{ $set:req.body});
+                    
+                    if(result && result.n == 1 && result.nModified == 1){
+                        res.status(202).json({
+                            status:true,
+                            message: 'restaurant details are updated successfully!',
+                            result: result,
+                        });
+                    }else{
+                        res.status(500).json({
+                            status:false,
+                            message: "something went wrong, db error, you may b not the owner of this restaurant to update, please check once"
+                        });
+                    }
+                }
+            }else{
+                res.json({status:false,message:"mandatory parameters are missing"})
+            }
+        }else{
+            res.json({status:false,message:"oppsss.!!! you cannot update a restaurant, you are not a vendor role"})
+        }
+    }catch(err){
+        console.log(err)
+        res.json({status:false,message:"something went wrong",err})
+    }
+}
+
+exports.updateOffersByRestaurantId = async (req,res)=>{
+    try{
+        if(req.userDetails.role == 'VENDOR'){
+            if(req.query.restaurantId && req.body.offers && req.body.offers.length){
+
+                const result = await Restaurant.updateOne({_id:req.query.restaurantId,createdBy:req.userDetails._id},{ $push:req.body});
                 
                 if(result && result.n == 1 && result.nModified == 1){
                     res.status(202).json({
                         status:true,
-                        message: 'restaurant details are updated successfully!',
+                        message: 'restaurant offers are updated successfully!',
                         result: result,
                     });
                 }else{
                     res.status(500).json({
                         status:false,
-                        message: "something went wrong, db error, you may b not the owner of this restaurant to update, please check once"
+                        message: "something went wrong, db error, you may b not the owner of this restaurant to update offers, please check once"
                     });
                 }
             }else{
                 res.json({status:false,message:"mandatory parameters are missing"})
             }
         }else{
-            res.json({status:false,message:"oppsss.!!! you cannot create a restaurant, you are not a vendor role"})
+            res.json({status:false,message:"oppsss.!!! you cannot update a restaurant, you are not a vendor role"})
         }
     }catch(err){
         console.log(err)
@@ -125,10 +181,10 @@ exports.updateRestaurantById = async (req,res)=>{
 exports.deleteRestaurantById = async (req,res)=>{
     try{
         if(req.userDetails.role == 'VENDOR' ){
-            if(req.params.restaurantId){
-                const result = await Restaurant.deleteOne({_id:req.params.restaurantId,createdBy:req.userDetails._id})
-                const result1 =  await Menu.delete({restaurantId:req.params.restaurantId})
-                console.log("🚀 ~ file: restaurant.js ~ line 120 ~ exports.deleteRestaurantById ~ result", result)
+            if(req.query.restaurantId){
+                const result = await Restaurant.deleteOne({_id:req.query.restaurantId,createdBy:req.userDetails._id})
+                // const result1 =  await Restaurant.delete({restaurantId:req.query.restaurantId})
+                
                 
                 if(result && result.n == 1 && result.deletedCount == 1){
                     res.status(200).json({

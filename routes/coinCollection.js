@@ -7,4 +7,6 @@ router.post("/giftCoinByRestaurantId",authorize, coinCollectionController.giftCo
 
 router.get("/getMyAllCoinsByRestaurantId",authorize, coinCollectionController.getMyAllCoinsByRestaurantId);
 
+router.get("/getAllRestaurantDetails",authorize, coinCollectionController.getAllRestaurantDetails);
+
 module.exports = router;

@@ -51,8 +51,8 @@ exports.createOrder = async (req,res)=>{
 
 exports.getAllOrdersByRestaurantId = async (req,res)=>{
     try{
-        if(req.params.restaurantId){
-            const result = await PlaceOrder.find({restaurantId:mongoose.Types.ObjectId(req.params.restaurantId)});
+        if(req.query.restaurantId){
+            const result = await PlaceOrder.find({restaurantId:mongoose.Types.ObjectId(req.query.restaurantId)});
             if(result){
                 res.status(200).json({
                     status:true,

@@ -1,8 +1,8 @@
 const express=require('express');
-const bodyParser=require('body-parser');
+const bodyParser= require('body-parser')
 const mongoose=require('mongoose');
 const path=require('path');
-
+require('dotenv').config();
 
 const userRoutes=require('./routes/user');
 const restaurantRoutes=require('./routes/restaurant');
@@ -15,13 +15,12 @@ const app=express();
 const port=process.env.PORT||5000
 
 
-const MONGO_LOCAL_URL="mongodb://localhost:27017/menu-cart"; //! local mongo db
-const MONGO_GLOBAL_URL="mongodb+srv://menu-cart-test-db:MenuCartPassword%401234@menu-cart.2ovt8.mongodb.net/test" //! Global cluster
-
+const MONGO_LOCAL_URL=`mongodb://${process.env.HOST}:27017/menu-cart`; //! local mongo db
+const MONGO_MENU_CAR_URL=process.env.MONGO_MENU_CAR_URL; //! global mongo db
 
 mongoose.Promise=global.Promise;
 
-mongoose.connect(MONGO_GLOBAL_URL, {
+mongoose.connect(MONGO_MENU_CAR_URL, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 })
@@ -30,11 +29,13 @@ mongoose.connect(MONGO_GLOBAL_URL, {
 
   })
   .catch((err) => {
+    console.log('Log: ~> file: app.js ~> line 48 ~> err', err)
     console.log('DB connection Failed')
   })
 
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({extended: true}))
+
 app.use("/", express.static(path.join())); //used in-case of single app, angular is folder which contains UI build
 
 app.use((req, res, next) => {
@@ -56,11 +57,12 @@ app.use("/api/order", placeOrderRoutes);
 app.use("/api/coinCollection", coinCollectionRoutes);
 
 //code for single app
-app.use("/",(req, res, next) => {
+app.use((req, res, next) => {
   res.send('Welcome to menu cart!')
 })
 
 app.listen(port, () => {
+  console.log('Log: ~> file: app.js ~> line 74 ~> app.listen ~> port', port)
 });
 
 module.exports=app

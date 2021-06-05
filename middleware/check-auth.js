@@ -3,7 +3,7 @@ const User = require('../models/user');
 
 const Authenticate = function (req,res,next) {
     
-    let jwtSecretKey = 'menu-cart';
+    let jwtSecretKey = process.env.APP_SECRET;
     try {
         if(req.headers["authorization"]){
             const token = req.headers['authorization'];
